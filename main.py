@@ -1,5 +1,13 @@
 import subprocess
+import sys
+from pathlib import Path
 
+
+startup_folder = (
+    Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
+)
+
+startup_file = startup_folder / "Power Settings Guardian.bat"
 
 def get_power_settings():
     result = subprocess.run(
@@ -23,6 +31,26 @@ def set_power_settings(desired_timeout_minutes):
     subprocess.run(
         ["powercfg", "/change", "monitor-timeout-ac", str(desired_timeout_minutes)]
     )
+
+
+def install_startup():
+    script_path = Path(__file__).resolve()
+    python_executable = sys.executable
+    batch_contents = (
+        f'@echo off\n'
+        f'"{python_executable}" "{script_path}"'
+    )
+
+    if startup_file.exists():
+        return False
+    startup_file.write_text(batch_contents)
+    return True
+
+installed = install_startup()
+if installed:
+    print("Startup Launcher installed.")
+else:
+    print("Startup launcher already installed.")
 
 current_timeout_seconds = get_power_settings()
 desired_timeout_minutes = 5
